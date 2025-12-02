@@ -12,13 +12,13 @@ def main():
     
     rate = rospy.Rate(20) # 20Hz
     
-    # 假设这个脚本想让飞机飞到 (5, 5, 2)
+    # 假设这个脚本想让飞机飞到 (2, 2, 2)
     pose = PoseStamped()
-    pose.pose.position.x = 5
-    pose.pose.position.y = 5
+    pose.pose.position.x = 2
+    pose.pose.position.y = 2
     pose.pose.position.z = 2
 
-    rospy.loginfo("Controller Script Started. Publishing setpoints to (5,5,2)...")
+    rospy.loginfo(f"Controller Script Started. Publishing setpoints to ({pose.pose.position.x}, {pose.pose.position.y}, {pose.pose.position.z})...")
     rospy.loginfo("You can now switch to OFFBOARD mode using the switcher script.")
 
     while not rospy.is_shutdown():
