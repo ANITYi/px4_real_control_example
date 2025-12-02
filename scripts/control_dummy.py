@@ -19,7 +19,7 @@ def main():
     pose.pose.position.z = 2
 
     rospy.loginfo(f"Controller Script Started. Publishing setpoints to ({pose.pose.position.x}, {pose.pose.position.y}, {pose.pose.position.z})...")
-    rospy.loginfo("You can now switch to OFFBOARD mode using the switcher script.")
+    rospy.loginfo(" switch to [OFFBOARD] mode using the switcher script.")
 
     while not rospy.is_shutdown():
         # 持续发布指令

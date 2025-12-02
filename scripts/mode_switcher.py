@@ -35,6 +35,6 @@ if __name__ == "__main__":
     
     # 简单的安全提示
     if mode == "OFFBOARD":
-        print("WARNING: Ensure your control script (Script 3) is running NOW before switching!")
+        print("[WARNING]: Ensure your control script (Script 3) is running NOW before switching!")
         
     change_mode(mode)

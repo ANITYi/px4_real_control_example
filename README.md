@@ -25,7 +25,7 @@ git clone https://github.com/ANITYi/px4_real_control_example.git
 roslaunch px4 mavros_posix_sitl.launch
 ```
 启动后如下：  
-!(启动界面)[./figs/Screenshot from 2025-12-02 16-26-03.png]
+![启动界面](./figs/init.png)
 
 ## >1 无人机自动起飞
 **这一步对标真实环境下，遥控器控制无人机起飞并悬停在第一个位置**  
@@ -37,7 +37,7 @@ cd ~/catkin_ws/src/px4_real_control_example/scripts/
 python3 take_and_park.py
 ```
 会看到如下界面,无人机飞到`z=2m`的位置，（如果有QGCGround，会看到QGC模式为HOLD）
-!(TAKOFF)[./figs/takeoff.png]
+![TAKOFF](./figs/takeoff.png)
 
 ## > 2 启动第三方脚本
 这里脚本是指，比如想用位置控制、速度控制、路径规划、目标跟踪等等脚本  
@@ -64,7 +64,7 @@ python3 mode_switcher.py OFFBOARD
 python3 mode_switcher.py AUTO.LOITER
 ```
 切换成offboard模式如下，也可以在QGC中看到为offboard模型（不一定要有QGC）  
-!(offboard)[./figs/offboard.png]
+![offboard](./figs/offboard.png)
 
 
 
