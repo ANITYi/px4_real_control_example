@@ -27,7 +27,10 @@ def change_mode(mode_name):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python mode_switcher.py [OFFBOARD | AUTO.LOITER]")
+        print("[Usage]: python mode_switcher.py [OFFBOARD | AUTO.LOITER | POSCTL]\
+              \n [OFFBOARD]: code control \
+              \n [AUTO.LOITER]: GNSS can be used\
+              \n [POSCTL]: no GNSS, use VIO/LIO pose")
         sys.exit(1)
         
     mode = sys.argv[1]
