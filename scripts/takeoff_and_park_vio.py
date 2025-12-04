@@ -13,9 +13,6 @@ current_pose = PoseStamped()
 last_vision_time = rospy.Time(0)
 vision_data_received = False
 
-# 控制权标志位：默认 True (拥有控制权)
-control_active = True 
-
 # 状态回调
 def state_cb(msg):
     global current_state
@@ -32,14 +29,6 @@ def vision_cb(msg):
     last_vision_time = rospy.Time.now()
     vision_data_received = True
 
-# ==========================================
-# 新增：控制权交接回调函数
-# ==========================================
-def takeover_cb(msg):
-    global control_active
-    if msg.data == True:
-        rospy.logwarn("Received TAKEOVER signal. Stopping local position publish.")
-        control_active = False
 
 def main():
     rospy.init_node('takeoff_script', anonymous=True)
@@ -48,10 +37,6 @@ def main():
     state_sub = rospy.Subscriber("mavros/state", State, state_cb)
     local_pos_sub = rospy.Subscriber("mavros/local_position/pose", PoseStamped, pos_cb)
     vision_sub = rospy.Subscriber("/mavros/vision_pose/pose", PoseStamped, vision_cb)
-    
-    # 新增：订阅交接话题
-    # 只要往这个话题发送 True，脚本A就会停止发送指令
-    takeover_sub = rospy.Subscriber("/stop_flag", Bool, takeover_cb)
     
     # 2. 发布
     local_pos_pub = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
@@ -80,8 +65,8 @@ def main():
     for i in range(100):   
         if rospy.is_shutdown():
             break
-        if control_active:
-            local_pos_pub.publish(pose)
+        
+        local_pos_pub.publish(pose)
         rate.sleep()
 
     offb_set_mode = SetModeRequest()
@@ -99,51 +84,38 @@ def main():
     hover_started = False
 
     while not rospy.is_shutdown():
-        # ---------------------------------------------------
-        # 关键修改：只有当 control_active 为 True 时才发布指令
-        # ---------------------------------------------------
-        if control_active:
-            
-            # 1. 模式维护 (OFFBOARD + ARM)
-            if current_state.mode != "OFFBOARD" and (rospy.Time.now() - last_req) > rospy.Duration(5.0):
-                if set_mode_client.call(offb_set_mode).mode_sent:
-                    rospy.loginfo("Offboard enabled")
-                last_req = rospy.Time.now()
-            else:
-                if not current_state.armed and (rospy.Time.now() - last_req) > rospy.Duration(5.0):
-                    if arming_client.call(arm_cmd).success:
-                        rospy.loginfo("Vehicle armed")
-                    last_req = rospy.Time.now()
-
-            # 2. 起飞与悬停逻辑
-            if not hover_started:
-                local_pos_pub.publish(pose) # 发送起飞目标
-                
-                if current_state.mode == "OFFBOARD" and current_state.armed:
-                    current_z = current_pose.pose.position.z
-                    if abs(current_z - target_alt) < 0.1:
-                        # 检查视觉数据
-                        if vision_data_received and (rospy.Time.now() - last_vision_time) < rospy.Duration(0.5):
-                            rospy.loginfo("Target reached. Entering Hover Mode.")
-                            # 锁定位置
-                            hover_pose = current_pose
-                            hover_pose.pose.position.z = target_alt 
-                            hover_started = True
-            else:
-                # 已经到达高度，持续发送悬停点
-                local_pos_pub.publish(hover_pose)
-                rospy.loginfo_throttle(2, "Script A: Hovering... Waiting for handover.")
         
-        else:
-            # control_active = False
-            # 脚本 A 进入“静默观察”模式
-            # 它不再发送位置指令，也不会去抢夺 OFFBOARD 模式
-            # 此时完全依赖 脚本 B 来维持 OFFBOARD 和发送指令
-            rospy.loginfo_throttle(2, "Script A: Passive Mode (Control yielded).")
             
-            # 可选：如果你希望交接后脚本A直接退出，可以在这里 break
-            break 
+        # 1. 模式维护 (OFFBOARD + ARM)
+        if current_state.mode != "OFFBOARD" and (rospy.Time.now() - last_req) > rospy.Duration(5.0):
+            if set_mode_client.call(offb_set_mode).mode_sent:
+                rospy.loginfo("Offboard enabled")
+            last_req = rospy.Time.now()
+        else:
+            if not current_state.armed and (rospy.Time.now() - last_req) > rospy.Duration(5.0):
+                if arming_client.call(arm_cmd).success:
+                    rospy.loginfo("Vehicle armed")
+                last_req = rospy.Time.now()
 
+        # 2. 起飞与悬停逻辑
+        if not hover_started:
+            local_pos_pub.publish(pose) # 发送起飞目标
+            
+            if current_state.mode == "OFFBOARD" and current_state.armed:
+                current_z = current_pose.pose.position.z
+                if abs(current_z - target_alt) < 0.1:
+                    # 检查视觉数据
+                    if vision_data_received and (rospy.Time.now() - last_vision_time) < rospy.Duration(0.5):
+                        rospy.loginfo("Target reached. Entering Hover Mode.")
+                        # 锁定位置
+                        hover_pose = current_pose
+                        hover_pose.pose.position.z = target_alt 
+                        hover_started = True
+        else:
+            # 已经到达高度，持续发送悬停点
+            local_pos_pub.publish(hover_pose)
+            rospy.loginfo_throttle(2, "Script A: Hovering... Waiting for handover.")
+        
         rate.sleep()
 
 if __name__ == '__main__':
