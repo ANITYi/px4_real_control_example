@@ -55,7 +55,7 @@ def main():
         rospy.loginfo("Waiting for FCU connection...")
         rate.sleep()
 
-    target_alt = 1.5
+    target_alt = 1.1
     pose = PoseStamped()
     pose.pose.position.x = 0
     pose.pose.position.y = 0

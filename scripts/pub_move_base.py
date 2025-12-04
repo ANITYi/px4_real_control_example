@@ -26,9 +26,9 @@ def send_goal(x, y, yaw_deg):
     goal = PoseStamped()
     
     # --- Header 设置 ---
-    goal.header.seq = 1
+    goal.header.seq = 0
     goal.header.stamp = rospy.Time.now()
-    goal.header.frame_id = "map"  # 重要：坐标系通常是 "map" 或 "odom"
+    goal.header.frame_id = "world"  # 重要：坐标系通常是 "map" 或 "odom"
     
     # --- Position (位置) ---
     goal.pose.position.x = x
@@ -56,9 +56,9 @@ def send_goal(x, y, yaw_deg):
 if __name__ == '__main__':
     try:
         # --- 这里修改你的目标点 ---
-        target_x = 2.0    # 米
-        target_y = 1.5    # 米
-        target_yaw = 90.0 # 度 (90度是朝向 Y 轴正方向)
+        target_x = 0.2    # 米
+        target_y = 0.2    # 米
+        target_yaw = 0 # 度 (90度是朝向 Y 轴正方向)
         
         send_goal(target_x, target_y, target_yaw)
         
